@@ -1,11 +1,21 @@
-import  { model, Schema } from "mongoose"
+import  { Types, model, Schema , Document} from "mongoose"
 
-interface IUserRegistration {
+export interface IUserRegistration{
     username: string,
     email: string,
     password: string,
     createdAt: Date,
     updatedAt: Date,
+}
+
+export interface IUser extends IUserRegistration {
+    _id: Types.ObjectId;
+}
+
+export interface IUserLogin extends Document {
+    username?: string;
+    email?: string;
+    password: string;
 }
 
 const userRegistrationSchema = new Schema<IUserRegistration>({
@@ -14,6 +24,5 @@ const userRegistrationSchema = new Schema<IUserRegistration>({
     password: {type: String, required: true, minlength: 8, match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/ },
 }, {timestamps: true})
 
-const UserRegistrationModel = model<IUserRegistration>('UserRegistration', userRegistrationSchema)
+export const UserRegistrationModel = model<IUserRegistration>('UserRegistration', userRegistrationSchema)
 
-export default UserRegistrationModel
