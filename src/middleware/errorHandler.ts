@@ -30,12 +30,12 @@ export async function errorHandler(err: CustomError , req: Request, res: Respons
 
     }
 
-    error('Global Error:', {
-        statusCode,
-        message: message,
-        code: err.code || 'N/A',
-        stack: err.stack
-    })
+    // error('Global Error:', {
+    //     statusCode,
+    //     message: message,
+    //     code: err.code || 'N/A',
+    //     stack: err.stack
+    // })
 
     res.status(statusCode).json({
         success: false,
