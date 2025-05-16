@@ -74,44 +74,4 @@ router.post("/register", validateRegistrationRules, validateResult, registerUser
  */
 router.post("/login", validateLoginRules, validateResult, handleUserLogin)
 
-/**
- * @swagger
- * /user/api/messages:
- *   post:
- *     summary: Send a message to user or group
- *     tags: [Messages]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - content
- *             properties:
- *               senderId:
- *                 type: string
- *                 example: 6824c3777fa6a0a2a410c0fd
- *               receiverId:
- *                 type: string
- *                 example: 68248f55f1b41aeceab2288e
- *               groupId:
- *                 type: string
- *               content:
- *                 type: string
- *                 example: Hello, world!
- *     responses:
- *       200:
- *         description: Message sent successfully
- *       400:
- *         description: Bad Request
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Group not found
- */
-router.post("/api/messages", authenticationHandler, validateMessageRules, validateResult, checkidHandler, userMessageController)
-
 export default router
