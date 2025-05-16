@@ -8,18 +8,20 @@ export const socketsBucket = new Map<string, Set<string>>();
 export function setupSocketIO(io: Server) {
     io.use((socket, next) => {
         const token: string = socket.handshake.auth.token;
-        const userId: string = socket.handshake.query.userId as string;
 
         if (!token) {
             return next(createError(401, "Missing authentication token"));
         }
 
         let user: IDecodedToken = {} as IDecodedToken;
+        let userId: string
         try{
              user = verifyJwtToken(token);
+             console.log("user:", user);
             if (!user || !user.userId) {
                 return next(createError(401, "Invalid or expired token"));
             }
+            userId = user.userId;
         }catch(error : any){
             return next(createError(401, error.message || "Invalid token"));
         }
