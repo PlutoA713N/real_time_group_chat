@@ -46,7 +46,7 @@ describe("userMessageController", () => {
 
         await userMessageController(req, res, next);
 
-        expect(emitToUser).toHaveBeenCalledWith("user2", "receive_message", savedMessage);
+        expect(emitToUser).toHaveBeenCalledWith("user2", "message", savedMessage);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ message: "ok", data: { newMessage: savedMessage } });
     });
@@ -81,9 +81,9 @@ describe("userMessageController", () => {
         await userMessageController(req, res, next);
 
         expect(emitToUser).toHaveBeenCalledTimes(3);
-        expect(emitToUser).toHaveBeenCalledWith("user1", "receive_message", savedMessage);
-        expect(emitToUser).toHaveBeenCalledWith("user2", "receive_message", savedMessage);
-        expect(emitToUser).toHaveBeenCalledWith("user3", "receive_message", savedMessage);
+        expect(emitToUser).toHaveBeenCalledWith("user1", "message", savedMessage);
+        expect(emitToUser).toHaveBeenCalledWith("user2", "message", savedMessage);
+        expect(emitToUser).toHaveBeenCalledWith("user3", "message", savedMessage);
         expect(res.status).toHaveBeenCalledWith(200);
     });
 
