@@ -1,7 +1,8 @@
-import { body, validationResult, ValidationChain } from "express-validator";
+import {body, validationResult, ValidationChain, check, query} from "express-validator";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
-import { createError } from "../errors/createError";
+import { createError } from "../errors/createError"
+import {IMessageHistoryQuery} from "../interfaces/api.interfaces";
 
 export const validateRegistrationRules: ValidationChain[] = [
   body("username")
@@ -49,11 +50,6 @@ export const validateLoginRules: ValidationChain[] = [
 ];
 
 export  const validateMessageRules: ValidationChain[] = [
-  // body('senderId')
-  //     .notEmpty()
-  //     .trim()
-  //     .escape()
-  //     .withMessage('Invalid senderId'),
 
   body('senderId')
       .notEmpty().withMessage('senderId is required')
@@ -101,6 +97,63 @@ export  const validateMessageRules: ValidationChain[] = [
       .trim()
       .escape()
 
+]
+
+export  const validateMessageHistoryRules: ValidationChain[] = [
+    query('userId')
+        .trim()
+        .notEmpty().withMessage('userId is required')
+        .bail()
+        .custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid userId');
+            }
+            return true;
+        }),
+
+
+    query('withUserId')
+        .optional({ checkFalsy: true })
+        .trim()
+        .bail()
+        .custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid withUserId');
+            }
+            return true;
+        }),
+
+
+    query('groupId')
+        .optional({ checkFalsy: true })
+        .trim()
+        .bail()
+        .custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid groupId');
+            }
+            return true;
+        }),
+
+    query().custom((_, { req }) => {
+        const { withUserId, groupId } = req.query as IMessageHistoryQuery
+        if (!withUserId && !groupId) {
+            throw new Error("Either withUserId or groupId should be provided");
+        }
+        return true
+    }),
+
+    query('page')
+        .optional({checkFalsy: true})
+        .isInt({min: 1})
+        .withMessage('Page must be a positive integer')
+        .toInt(),
+
+    query('pageSize')
+        .optional({checkFalsy: true})
+        .isInt({min: 25, max: 100})
+        .withMessage('Page size must be a positive integer')
+        .toInt()
 ]
 
 export const validateResult = (
