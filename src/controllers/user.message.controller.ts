@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { UserMessageModel } from "./../models/user.message.model";
 import { createSuccessResponse } from "../errors/createSuccessResponse";
 import { GroupModel } from "../models/group.model";
-import { AppError } from "../errors/AppError";
+import { createError } from "./../errors/createError";
 import {emitToUser} from "./../sockets/utils/io.message.utils";
 
 
@@ -18,16 +18,16 @@ export const userMessageController = async (req: Request, res: Response, next: N
         const savedMessage = await newMessage.save()
 
         if (receiverId) {
-            emitToUser(receiverId, 'receive_message', savedMessage)
+            emitToUser(receiverId, 'message', savedMessage)
         }
 
 
         if (groupId) {
                 const group = await GroupModel.findById({ _id: groupId })
-                if (!group) throw new AppError('Group not found', 404, 'DOCUMENT_IS_MISSING')
+                if (!group) return next(createError('Group not found', 404, 'GROUP_NOT_FOUND'))
 
                 group.members.forEach((memberId) => {
-                   emitToUser(memberId, 'receive_message', savedMessage)
+                   emitToUser(memberId, 'group_message', savedMessage)
                 })
         }
 
