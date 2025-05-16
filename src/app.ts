@@ -11,8 +11,13 @@ import { getEnv } from "./config/env";
 
 const port = Number(getEnv("PORT", true, "5000"));
 
-const httpServer = createServer(app);           // ✅ HTTP server from the fully defined app
-const io = new Server(httpServer);              // ✅ Pass it to socket.io
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: '*',
+        credentials: true,
+    }
+});
 setupSocketIO(io);
 setSocketIOInstance(io)// ✅ Setup your socket logic
 
