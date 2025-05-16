@@ -23,14 +23,14 @@ const registerUser = async (
       password: hashedPassword,
     });
 
-    const usernameInDB = await checkFieldExists("username", username);
+    const usernameInDB = await checkFieldExists(UserRegistrationModel,"username", username);
 
     if (usernameInDB.isExists) {
       const error = createError(usernameInDB.message, 409, "USERNAME_EXISTS");
       return next(error)
     }
 
-    const emailInDB = await checkFieldExists("email", email);
+    const emailInDB = await checkFieldExists(UserRegistrationModel,"email", email);
 
     if (emailInDB.isExists) {
       const error = createError(emailInDB.message, 409, "EMAIL_EXISTS");
