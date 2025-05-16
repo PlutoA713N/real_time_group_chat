@@ -20,5 +20,8 @@ export const UserMessageSchema = new Schema({
     content: { type: String }
 }, {timestamps: true})
 
+UserMessageSchema.index({senderId: 1, receiverId:1, createdAt: -1})
+
+UserMessageSchema.index({groupId:1, createdAt: -1})
 
 export const UserMessageModel= model<IUserMessage>('UserMessage', UserMessageSchema)
