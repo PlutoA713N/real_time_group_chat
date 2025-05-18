@@ -4,7 +4,6 @@ import { validateRegistrationRules, validateLoginRules, validateResult, validate
 import { handleUserLogin } from "../controllers/user.login.controller";
 import { authenticationHandler } from "../middleware/authenticationHandler";
 import {userMessageController} from "../controllers/user.message.controller";
-import {checkidHandler} from "../middleware/checkidHandler";
 
 const router = Router();
 
