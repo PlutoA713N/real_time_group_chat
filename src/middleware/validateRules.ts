@@ -1,4 +1,4 @@
-import {body, validationResult, ValidationChain, check, query} from "express-validator";
+import {body, validationResult, ValidationChain, check, query, param} from "express-validator";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import { createError } from "../errors/createError"
@@ -154,6 +154,63 @@ export  const validateMessageHistoryRules: ValidationChain[] = [
         .isInt({min: 25, max: 100})
         .withMessage('Page size must be a positive integer')
         .toInt()
+]
+
+export const validateGroupRequest = [
+    body('name')
+        .isString()
+        .trim()
+        .escape()
+        .withMessage('Group name must be a string')
+        .notEmpty()
+        .withMessage('Group name is required'),
+
+    body('members')
+        .isArray()
+        .withMessage('Members must be an array')
+        .bail()
+        .custom((members) => {
+            members.forEach((member: any) => {
+                if (typeof member !== 'string') {
+                    throw new Error(`Member ID must be a string, but received "${typeof member}"`);
+                }
+                if (!mongoose.Types.ObjectId.isValid(member)) {
+                    throw new Error(`Invalid ObjectId for member: "${member}"`);
+                }
+            });
+
+            return true;
+        })
+]
+
+export const validateGroupMessageRules = [
+    param('groupId')
+        .notEmpty()
+        .withMessage('Group ID is required')
+        .bail()
+        .custom((id) => mongoose.isValidObjectId(id))
+        .withMessage('Invalid group ID'),
+
+    body('senderId')
+        .notEmpty()
+        .withMessage('senderId is required')
+        .bail()
+        .trim()
+        .custom((value) => mongoose.isValidObjectId(value))
+        .withMessage('Invalid senderId')
+        .escape(),
+
+    body('content')
+        .notEmpty()
+        .withMessage('Invalid content')
+        .isString()
+        .withMessage('Content must be a string')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage(
+            'Content must be more than one character long')
+        .escape(),
+
 ]
 
 export const validateResult = (
