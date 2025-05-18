@@ -2,7 +2,7 @@ import {Model} from "mongoose";
 import { AppError } from "./../errors/AppError";
 import {NextFunction, Request} from "express";
 import {createError} from "../errors/createError";
-import {IAutenticatedRequest} from "../middleware/checkidHandler";
+import {IAuthenticatedRequest} from "../middleware/checkidHandler";
 
 interface CheckResult <T> {
     message: string,
@@ -26,7 +26,7 @@ export async function checkFieldExists<T = any>(model: Model<any>, field: string
     }
 }
 
-export async function validateAndAttach(model: Model<any>,fieldId: string, field: string, req: IAutenticatedRequest) {
+export async function validateAndAttach(model: Model<any>,fieldId: string, field: string, req: IAuthenticatedRequest) {
     const result = await checkFieldExists(model,'_id', fieldId);
     if (!result.isExists) {
         throw createError(`${field} does not exist`, 404, `${field.toUpperCase()}_NOT_FOUND`);
