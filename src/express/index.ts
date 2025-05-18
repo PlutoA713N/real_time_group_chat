@@ -17,7 +17,7 @@ app.use(express.json())
 setupSwaggerDocs(app)
 
 app.use('/user', userRoute)
-app.use(userMessagesRoute)
+app.use('/api', userMessagesRoute)
 
 app.use(errorHandler)
 
