@@ -21,18 +21,19 @@ export const validateRegistrationRules: ValidationChain[] = [
 export const validateLoginRules: ValidationChain[] = [
   
   body("email")
-  .optional()
-  .trim()
-  .escape() 
-  .isEmail()
-  .withMessage("Invalid email address"),
-  
-  body("username")
-    .optional()
-    .trim()
-    .escape()
-    .notEmpty()
-    .withMessage("Username is required"),
+      .optional()
+      .trim()
+      .escape()
+      .isEmail()
+      .withMessage("Invalid email address"),
+
+    body("username")
+        .optional()
+        .isString().withMessage("Username must be a string")
+        .trim()
+        .escape()
+        .notEmpty().withMessage("Username cannot be empty"),
+
   
     body('username_or_email').custom((value, { req }) => {
       const { email, username } = req.body
@@ -140,6 +141,9 @@ export  const validateMessageHistoryRules: ValidationChain[] = [
         if (!withUserId && !groupId) {
             throw new Error("Either withUserId or groupId should be provided");
         }
+        if (withUserId && groupId) {
+            throw new Error("Provide either withUserId or groupId, not both.");
+        }
         return true
     }),
 
@@ -151,7 +155,7 @@ export  const validateMessageHistoryRules: ValidationChain[] = [
 
     query('pageSize')
         .optional({checkFalsy: true})
-        .isInt({min: 25, max: 100})
+        .isInt({min: 25, max: 30})
         .withMessage('Page size must be a positive integer')
         .toInt()
 ]
@@ -170,6 +174,9 @@ export const validateGroupRequest = [
         .withMessage('Members must be an array')
         .bail()
         .custom((members) => {
+            if (members.length === 0) {
+                return true;
+            }
             members.forEach((member: any) => {
                 if (typeof member !== 'string') {
                     throw new Error(`Member ID must be a string, but received "${typeof member}"`);
