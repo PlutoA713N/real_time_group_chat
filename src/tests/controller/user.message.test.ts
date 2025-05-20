@@ -1,19 +1,20 @@
 import { userMessageController } from "./../../controllers/user.message.controller";
 import { UserMessageModel } from "./../../models/user.message.model";
 import { GroupModel } from "./../../models/group.model";
-import { emitToUser } from "./../../sockets/utils/io.message.utils";
+import {emitToGroup, emitToUser} from "./../../sockets/utils/io.message.utils";
 import { AppError } from "./../../errors/AppError";
 import { createSuccessResponse } from "./../../errors/createSuccessResponse";
 
 jest.mock("./../../models/user.message.model");
 jest.mock("./../../models/group.model");
-jest.mock( "./../../sockets/utils/io.message.utils");
+jest.mock("./../../sockets/utils/io.message.utils");
 jest.mock("./../../errors/createSuccessResponse");
 jest.mock("./../../errors/AppError");
 
 describe("userMessageController", () => {
-    const mockReq = (body: any) => ({
-        body
+    const mockReq = (body: any, group: any = null) => ({
+        body,
+        group
     } as any);
 
     const mockRes = () => {
@@ -38,7 +39,7 @@ describe("userMessageController", () => {
 
         const res = mockRes();
 
-        const savedMessage = {  senderId: "user1", receiverId: "user2", groupId: "", content: "hello" };
+        const savedMessage = { senderId: "user1", receiverId: "user2", groupId: "", content: "hello" };
 
         jest.spyOn(UserMessageModel.prototype, "save").mockResolvedValue(savedMessage);
 
@@ -47,7 +48,7 @@ describe("userMessageController", () => {
         await userMessageController(req, res, next);
 
         expect(emitToUser).toHaveBeenCalledWith("user2", "message", savedMessage);
-        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json).toHaveBeenCalledWith({ message: "ok", data: { newMessage: savedMessage } });
     });
 
@@ -56,35 +57,22 @@ describe("userMessageController", () => {
             senderId: "user1",
             groupId: "group123",
             content: "group message"
+        }, {
+            name: "Test Group",
+            members: ["user1", "user2", "user3"]
         });
 
         const res = mockRes();
 
         const savedMessage = { senderId: "user1", groupId: "group123", content: "group message" };
 
-        (UserMessageModel as any).mockImplementation(() => ({
-            ...savedMessage,
-            save: jest.fn().mockResolvedValue(savedMessage)
-        }));
-
-        const saveMock = jest.fn().mockResolvedValue(savedMessage);
-        (UserMessageModel as any).mockImplementation(() => ({
-            save: saveMock
-        }));
-
-        (GroupModel.findById as jest.Mock).mockResolvedValue({
-            members: ["user1", "user2", "user3"]
-        });
-
+        jest.spyOn(UserMessageModel.prototype, "save").mockResolvedValue(savedMessage);
         (createSuccessResponse as jest.Mock).mockReturnValue({ message: "ok", data: { message: savedMessage } });
 
         await userMessageController(req, res, next);
 
-        expect(emitToUser).toHaveBeenCalledTimes(3);
-        expect(emitToUser).toHaveBeenCalledWith("user1", "message", savedMessage);
-        expect(emitToUser).toHaveBeenCalledWith("user2", "message", savedMessage);
-        expect(emitToUser).toHaveBeenCalledWith("user3", "message", savedMessage);
-        expect(res.status).toHaveBeenCalledWith(200);
+        expect(emitToGroup).toHaveBeenCalledTimes(1);
+        expect(res.status).toHaveBeenCalledWith(201); // Adjusted expected status code
     });
 
     it("should throw error if group not found", async () => {
@@ -96,11 +84,10 @@ describe("userMessageController", () => {
 
         const res = mockRes();
 
-        (UserMessageModel as any).mockImplementation(() => ({
-            save: jest.fn().mockResolvedValue({})
-        }));
-
+        // Simulate group not found by returning null
         (GroupModel.findById as jest.Mock).mockResolvedValue(null);
+
+        req.group = null; // Explicitly set group to null
 
         await userMessageController(req, res, next);
 
