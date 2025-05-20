@@ -2,6 +2,7 @@
 import { Server } from "socket.io";
 import {IDecodedToken, verifyJwtToken} from "../utils/jwt";
 import { createError } from "./utils/errorWrapper";
+import {autoJoinUserGroups, handleGroupJoin} from "./utils/socketGroupUtils";
 
 export const socketsBucket = new Map<string, Set<string>>();
 
@@ -38,8 +39,17 @@ export function setupSocketIO(io: Server) {
         next();
     });
 
-    io.on("connection", (socket) => {
+    io.on("connection",  (socket) => {
         console.log(`Socket ${socket.id} connected | User: ${socket.data.userId}`);
+
+         autoJoinUserGroups(socket.data.userId, socket);
+
+        socket.on("join_group", async (groupId) => {
+            if (!groupId) {
+                return socket.emit("error", { code: "GROUP_ID_MISSING", message: "Group ID is required." });
+            }
+            await handleGroupJoin(groupId, socket.data.userId, socket )
+        })
 
         socket.on("disconnect", () => {
             const socketSet = socketsBucket.get(socket.data.userId);
