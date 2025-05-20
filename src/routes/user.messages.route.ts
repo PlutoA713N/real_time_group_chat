@@ -59,20 +59,21 @@ import {createGroupMessage} from "../controllers/user.group.message.controller";
 router.post("/messages", authenticationHandler, validateMessageRules, validateResult, checkMessageIdsFromBody, userMessageController)
 
 /**
- * @openapi
+ * @swagger
  * /api/messages/history:
  *   get:
  *     tags:
  *       - Messages
  *     summary: Get Message History
- *     description: Retrieve message history between two users or within a group.
+ *     description: Retrieve message history between two users (direct messages) or within a group.
+ *                  You must provide either `withUserId` or `groupId`, but not both.
  *     parameters:
  *       - name: userId
  *         in: query
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the user whose message history is being retrieved.
+ *         description: The ID of the user requesting message history.
  *       - name: withUserId
  *         in: query
  *         required: false
@@ -104,7 +105,7 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *         description: The number of messages per page.
  *     responses:
  *       '200':
- *         description: A list of message objects.
+ *         description: A list of message objects with pagination metadata.
  *         content:
  *           application/json:
  *             schema:
@@ -115,19 +116,25 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Message history retrieved successfully
+ *                   example: message history retrieved successfully
  *                 data:
  *                   type: object
  *                   properties:
  *                     totalMessages:
  *                       type: integer
- *                       example: 45
+ *                       example: 5
  *                     totalPages:
  *                       type: integer
- *                       example: 2
+ *                       example: 1
  *                     currentPage:
  *                       type: integer
  *                       example: 1
+ *                     requestPage:
+ *                       type: integer
+ *                       example: 4
+ *                     clamped:
+ *                       type: boolean
+ *                       example: true
  *                     pageSize:
  *                       type: integer
  *                       example: 25
@@ -137,6 +144,37 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *                         $ref: '#/components/schemas/Message'
  *       '400':
  *         description: Invalid query parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Validation failed
+ *                 code:
+ *                   type: string
+ *                   example: VALIDATION_FAILED
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: userId
+ *                       message:
+ *                         type: string
+ *                         example: Invalid userId
+ *                       value:
+ *                         type: string
+ *                         example: "''\""
+ *                       location:
+ *                         type: string
+ *                         example: query
  *       '401':
  *         description: Unauthorized
  *       '500':
@@ -165,12 +203,15 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Study Buddies"
+ *                 example: "red room two"
  *               members:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["663c3df9c5fbd9e2dc1f9411", "663c3e0ec5fbd9e2dc1f9412"]
+ *                 example: ["68248f55f1b41aeceab2288e", "682c690bdd5846d3ccf08d61"]
+ *               creatorId:
+ *                 type: string
+ *                 example: "682c690bdd5846d3ccf08d61"
  *     responses:
  *       201:
  *         description: Group created successfully
@@ -184,11 +225,84 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Group created successfully
+ *                   example: "Group created successfully"
  *                 data:
- *                   $ref: '#/components/schemas/Group'
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "682ca4fab7885586ad4fd968"
+ *                     name:
+ *                       type: string
+ *                       example: "red room two"
+ *                     members:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       example: ["68248f55f1b41aeceab2288e", "682c690bdd5846d3ccf08d61"]
+ *                     creatorId:
+ *                       type: string
+ *                       example: "682c690bdd5846d3ccf08d61"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-05-20T15:51:22.294Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-05-20T15:51:22.294Z"
+ *                     __v:
+ *                       type: integer
+ *                       example: 0
  *       400:
  *         description: Validation error or duplicate group
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 code:
+ *                   type: string
+ *                   example: "VALIDATION_FAILED"
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "members"
+ *                       message:
+ *                         type: string
+ *                         example: "Members must be an array"
+ *                       value:
+ *                         type: object
+ *                         example: {}
+ *                       location:
+ *                         type: string
+ *                         example: "body"
+ *       409:
+ *         description: Group already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Group already exists"
+ *                 code:
+ *                   type: string
+ *                   example: "GROUP_EXISTS"
  *       401:
  *         description: Unauthorized
  *       500:
@@ -198,7 +312,7 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
 
 /**
  * @swagger
- * /groups/{groupId}/messages:
+ * /api/groups/{groupId}/messages:
  *   post:
  *     summary: Send a message to a group
  *     description: This endpoint allows sending a message to a specific group.
@@ -211,7 +325,7 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *         description: The ID of the group to send the message to.
  *         schema:
  *           type: string
- *           example: 60a78845b54b1f001f1d9d5b  # example group ID
+ *           example: 682c67e7dd5846d3ccf08d5e
  *     requestBody:
  *       required: true
  *       content:
@@ -225,11 +339,11 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *               senderId:
  *                 type: string
  *                 description: The ID of the user sending the message.
- *                 example: 60a79d56b3d50a001f1b9d6a  # example sender ID
+ *                 example: 682c501d982e7da923e2104d
  *               content:
  *                 type: string
  *                 description: The content of the message being sent.
- *                 example: "Hello, everyone!"  # example content
+ *                 example: "Hello, everyone!, my 3rd message, this is kova again"
  *     responses:
  *       200:
  *         description: Message successfully sent to the group.
@@ -241,33 +355,98 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 groupName:
- *                   type: string
- *                   example: "General Chat"  # example group name
  *                 message:
+ *                   type: string
+ *                   example: message sent successfully
+ *                 data:
  *                   type: object
  *                   properties:
- *                     senderId:
+ *                     success:
+ *                       type: boolean
+ *                       example: true
+ *                     groupName:
  *                       type: string
- *                       example: 60a79d56b3d50a001f1b9d6a
- *                     content:
- *                       type: string
- *                       example: "Hello, everyone!"
- *                     groupId:
- *                       type: string
- *                       example: 60a78845b54b1f001f1d9d5b
- *                     timestamp:
- *                       type: string
- *                       example: "2025-05-19T00:00:00Z"  # example timestamp
+ *                       example: kova-group two
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         senderId:
+ *                           type: string
+ *                           example: 682c501d982e7da923e2104d
+ *                         groupId:
+ *                           type: string
+ *                           example: 682c67e7dd5846d3ccf08d5e
+ *                         content:
+ *                           type: string
+ *                           example: "Hello, everyone!, my 3rd message, this is kova again"
+ *                         _id:
+ *                           type: string
+ *                           example: 682ccc8d6234387739141274
+ *                         createdAt:
+ *                           type: string
+ *                           example: "2025-05-20T18:40:13.796Z"
+ *                         updatedAt:
+ *                           type: string
+ *                           example: "2025-05-20T18:40:13.796Z"
+ *                         __v:
+ *                           type: integer
+ *                           example: 0
  *       400:
- *         description: Invalid request, missing or incorrect data.
+ *         description: Validation failed (e.g., invalid senderId).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Validation failed
+ *                 code:
+ *                   type: string
+ *                   example: VALIDATION_FAILED
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: senderId
+ *                       message:
+ *                         type: string
+ *                         example: Invalid senderId
+ *                       value:
+ *                         type: string
+ *                         example: "682c501d982e7da923e104d"
+ *                       location:
+ *                         type: string
+ *                         example: body
+ *       401:
+ *         description: Missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Missing token
+ *                 code:
+ *                   type: string
+ *                   example: INVALID_AUTH_TOKEN
  *       404:
  *         description: Group not found or invalid group ID.
  *       500:
  *         description: Server error while processing the request.
  *     security:
- *       - bearerAuth: []  # assumes the use of bearer token for authentication
+ *       - bearerAuth: []
  */
-router.post('/groups/:groupId/messages', validateGroupMessageRules, validateResult, validateGroupMessagesRequest,  createGroupMessage)
+router.post('/groups/:groupId/messages', authenticationHandler, validateGroupMessageRules, validateResult, validateGroupMessagesRequest,  createGroupMessage)
 
 export default router
