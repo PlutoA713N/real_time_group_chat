@@ -1,9 +1,7 @@
 import { Router } from "express";
 import { registerUser } from "../controllers/user.registration.controller";
-import { validateRegistrationRules, validateLoginRules, validateResult, validateMessageRules } from "../middleware/validateRules";
+import { validateRegistrationRules, validateLoginRules, validateResult } from "../middleware/validateRules";
 import { handleUserLogin } from "../controllers/user.login.controller";
-import { authenticationHandler } from "../middleware/authenticationHandler";
-import {userMessageController} from "../controllers/user.message.controller";
 
 const router = Router();
 
