@@ -26,6 +26,13 @@ export async function handleUserLogin(req: Request, res: Response, next: NextFun
             return next(createError('Password is incorrect', 401, 'INVALID_PASSWORD'))
         }
 
+        if(username && email){
+            if(username !== user.username || email !== user.email){
+                return next(createError('Invalid Credentials', 401, 'INVALID_CREDENTIALS'))
+            }
+        }
+
+
         const payload = { 
             userId: user._id.toString(),
             username: user.username,
