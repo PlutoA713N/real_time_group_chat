@@ -6,7 +6,7 @@ const emitToUser = (userId: string, event: string, payload: any) => {
         const io = getSocketIOInstance()
         const socketIds  = socketsBucket.get(userId)
         if(!socketIds || socketIds.size === 0){
-            console.warn(`[Socket] No active sockets found for user ${userId}`);
+            console.warn(`[Socket] No active sockets found for user id :: ${userId}`);
             return
         }
         for (const socketId of socketIds) {
@@ -22,5 +22,11 @@ const emitToUser = (userId: string, event: string, payload: any) => {
 
 }
 
-export {emitToUser}
+
+const emitToGroup = (groupId: string, payload: any) => {
+    const io = getSocketIOInstance()
+    io.to(groupId).emit('group_message', payload);
+}
+
+export {emitToUser, emitToGroup}
 
