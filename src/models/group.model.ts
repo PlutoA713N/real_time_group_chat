@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 
 export interface IGroup {
     name: string;
-    members: [string];
+    members: string[];
     creatorId: string;
 }
 
