@@ -37,8 +37,12 @@ export const validateIds = async (
 
             const authId = senderId || userId;
 
-            if (user._id.toString() !== authId) {
-                return next(createError('Sender/User ID does not match the authenticated user', 403, 'INVALID_USER'));
+            if (authId && user._id.toString() !== authId) {
+                return next(createError(
+                    senderId ? 'Sender ID does not match the authenticated user' : 'User ID does not match the authenticated user',
+                    403,
+                    'INVALID_USER'
+                ));
             }
 
             if (receiverId) {
