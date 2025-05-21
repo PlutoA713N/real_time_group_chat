@@ -10,5 +10,5 @@ services:
       - .env
     environment:
       - MONGO_URI=${MONGO_URI}  # 🌐 Tell Node.js to connect to MongoDB service
-      - JWT_SECRET_KEY=${}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - REDIS_CLIENT_URL=${REDIS_CLIENT_URL}                 # 🔒 Your app’s environment variable
