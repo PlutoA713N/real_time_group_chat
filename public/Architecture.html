@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Architecture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            padding: 0;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        h2 {
+            font-size: 1.6em;
+        }
+        h3 {
+            font-size: 1.4em;
+        }
+        p, ul, ol, table {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📐 ARCHITECTURE</h1>
+
+<h2>🧩 Project Overview</h2>
+<p>This is a <strong>real-time group chat API</strong> backend built with Node.js, TypeScript, Express, Socket.IO, and MongoDB. It supports real-time messaging, JWT-based authentication, RESTful APIs for messaging and group chat, and Redis for scalability across multiple instances.</p>
+<p>The application is containerized using Docker and configured via environment variables. Jest is used for unit testing across all controller layers.</p>
+
+<hr>
+
+<h2>🛠 Tech Stack</h2>
+<table>
+    <tr>
+        <th>Component</th>
+        <th>Technology</th>
+    </tr>
+    <tr>
+        <td>Language</td>
+        <td>TypeScript (Node.js)</td>
+    </tr>
+    <tr>
+        <td>Framework</td>
+        <td>Express</td>
+    </tr>
+    <tr>
+        <td>Real-Time Engine</td>
+        <td>Socket.IO</td>
+    </tr>
+    <tr>
+        <td>Database</td>
+        <td>MongoDB</td>
+    </tr>
+    <tr>
+        <td>Caching / Pub-Sub</td>
+        <td>Redis</td>
+    </tr>
+    <tr>
+        <td>Authentication</td>
+        <td>JWT</td>
+    </tr>
+    <tr>
+        <td>Containerization</td>
+        <td>Docker + Docker Compose</td>
+    </tr>
+    <tr>
+        <td>Testing</td>
+        <td>Jest</td>
+    </tr>
+    <tr>
+        <td>API Documentation</td>
+        <td>Swagger (OpenAPI)</td>
+    </tr>
+</table>
+
+<hr>
+
+<h2>🧱 Folder Structure</h2>
+<h3>📂 Folder Descriptions</h3>
+<ul>
+    <li><strong>app.ts</strong>: The main file where the Express app and Socket.IO server are set up.</li>
+    <li><strong>config/</strong>: Contains files for environment variables and configurations related to the database, mongodb, and other integrations.</li>
+    <li><strong>controllers/</strong>: Handles the logic for various API endpoints, including user authentication, message handling, and group management.</li>
+    <li><strong>errors/</strong>: Centralized error handling classes, used for standardizing error responses and error messages.</li>
+    <li><strong>express/</strong>: Contains Express-specific logic, such as the app configuration, middleware setup, and routes.</li>
+    <li><strong>index.ts</strong>: Entry point to the app, where the server is initialized and started.</li>
+    <li><strong>interfaces/</strong>: Contains TypeScript interfaces, which define the structure of the data used in various parts of the application.</li>
+    <li><strong>middleware/</strong>: Houses authentication, validation, and error handling middleware.</li>
+    <li><strong>models/</strong>: Mongoose schema definitions for users, messages, groups, etc.</li>
+    <li><strong>redis/</strong>: Contains logic for Redis setup, including connection, configuration, redis database utils.</li>
+    <li><strong>routes/</strong>: Contains Express route definitions that are used to map URL paths to controller functions.</li>
+    <li><strong>sockets/</strong>: Handles all the logic related to Socket.IO events, such as sending/receiving real-time messages.</li>
+    <li><strong>swagger/</strong>: Setup files for Swagger/OpenAPI documentation for the API.</li>
+    <li><strong>tests/</strong>: Contains Jest test cases for various parts of the application, focusing on unit testing controllers and business logic.</li>
+    <li><strong>utils/</strong>: A collection of utility functions, such as data sanitization or common helper methods used across the project.</li>
+</ul>
+
+<hr>
+
+<h2>🔐 Authentication</h2>
+<ul>
+    <li><strong>JWT</strong> is used for stateless user authentication.</li>
+    <li>Tokens are verified for both REST requests and WebSocket connections.</li>
+    <li>Middleware ensures that unauthorized users are blocked from protected routes or socket events.</li>
+</ul>
+
+<hr>
+
+<h2>📡 Real-Time Messaging (Socket.IO)</h2>
+<h3>Flow:</h3>
+<ol>
+    <li>Client connects and authenticates using JWT.</li>
+    <li>Server validates the token and adds the socket to user-specific and group rooms.</li>
+    <li>Messages are sent via the socket, stored in MongoDB, and emitted to receivers.</li>
+    <li>Redis is used here managing tokens, and in future ensure message delivery across horizontally scaled instances.</li>
+</ol>
+
+<hr>
+
+<h2>🌐 RESTful APIs</h2>
+<h3>Root</h3>
+<ul>
+    <li><strong>GET <a href="/">/home</a>  </strong>: Get an architecture document of this project as .md or html</li>
+</ul>
+
+<h3>Auth</h3>
+<ul>
+    <li><strong>POST /register</strong>: User registration and receive jwt</li>
+    <li><strong>POST /login</strong>: Login and receive JWT</li>
+</ul>
+
+<h3>Messaging</h3>
+<ul>
+    <li><strong>POST /api/messages</strong>: Send direct or group message</li>
+    <li><strong>GET /api/messages/history</strong>: Fetch chat history</li>
+</ul>
+
+<h3>Group Chat</h3>
+<ul>
+    <li><strong>POST /api/groups</strong>: Create a new group</li>
+    <li><strong>POST /api/groups/:groupId/message</strong>: Send message to a group</li>
+</ul>
+
+<h3>Swagger Doc</h3>
+<ul>
+    <li><strong> GET <a href="/api-docs">/api-docs </a></strong>: Get Swagger API Documentation</li></ul>
+
+<hr>
+
+<h2>🗄 Database Models</h2>
+<h3>📚 Models Documentation</h3>
+<p>This document provides an overview of the Mongoose models used in the project. Each model is structured to handle the main features of the application, such as user registration, messaging, and groups.</p>
+
+<h3>🧑‍🤝‍🧑 User Registration Model</h3>
+<h4>Structure:</h4>
+<ul>
+    <li><strong>username</strong>: A unique string identifier for the user.</li>
+    <li><strong>email</strong>: The user's email address (must be unique).</li>
+    <li><strong>password</strong>: The user's password with validation (complexity requirements).</li>
+    <li><strong>createdAt</strong>: Timestamp for when the user was created.</li>
+    <li><strong>updatedAt</strong>: Timestamp for when the user data was last updated.</li>
+</ul>
+<h4>Purpose:</h4>
+<p>This model handles the user registration process. It ensures that each user has a unique username and email, and that the password adheres to complexity rules.</p>
+
+<h3>💬 User Message Model</h3>
+<h4>Structure:</h4>
+<ul>
+    <li><strong>senderId</strong>: The ID of the user sending the message (required).</li>
+    <li><strong>receiverId</strong>: The ID of the recipient user (optional for group messages).</li>
+    <li><strong>groupId</strong>: The ID of the group receiving the message (optional for direct messages).</li>
+    <li><strong>content</strong>: The content of the message (required).</li>
+    <li><strong>createdAt</strong>: Timestamp for when the message was created.</li>
+    <li><strong>updatedAt</strong>: Timestamp for the last update of the message.</li>
+</ul>
+<h4>Purpose:</h4>
+<p>This model stores the messages sent between users and within groups. It supports direct messages between users as well as messages sent to specific groups.</p>
+
+<h4>Indexes:</h4>
+<ul>
+    <li><strong>senderId</strong> and <strong>receiverId</strong> index: Facilitates quick retrieval of user-to-user messages.</li>
+    <li><strong>senderId</strong> and <strong>groupId</strong> index: Optimizes fetching messages sent to specific groups.</li>
+</ul>
+
+<h3>🏢 Group Model</h3>
+<h4>Structure:</h4>
+<ul>
+    <li><strong>name</strong>: The name of the group (required).</li>
+    <li><strong>members</strong>: An array of user IDs that belong to the group (required).</li>
+    <li><strong>creatorId</strong>: The ID of the user who created the group (required).</li>
+    <li><strong>createdAt</strong>: Timestamp for when the group was created.</li>
+    <li><strong>updatedAt</strong>: Timestamp for when the group data was last updated.</li>
+</ul>
+<h4>Purpose:</h4>
+<p>This model is used to define and store information about groups. It ensures that groups have a name, a list of members, and a creator ID.</p>
+
+<h3>🔄 Indexes</h3>
+<ul>
+    <li><strong>User Message Indexes</strong>:
+        <ul>
+            <li><strong>senderId</strong> and <strong>receiverId</strong> for user-to-user messages.</li>
+            <li><strong>senderId</strong> and <strong>groupId</strong> for user-to-group messages.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>🔐 Security Considerations</h3>
+<ul>
+    <li><strong>User Registration Model</strong>: Passwords should follow the specified complexity rules (e.g., length, uppercase/lowercase, numeric, and special characters).</li>
+    <li><strong>Encryption</strong>: Passwords and sensitive data should be encrypted before storing them in the database.</li>
+</ul>
+
+<h3>⚡ Potential Improvements</h3>
+<ul>
+    <li><strong>User Message Model</strong>:
+        <ul>
+            <li>Introduce a <strong>messageType</strong> field to support richer message types (e.g., image, video, or file messages).</li>
+        </ul>
+    </li>
+    <li><strong>Group Model</strong>:
+        <ul>
+            <li>Add a <strong>privacy</strong> field to allow configuration of public or private groups.</li>
+        </ul>
+    </li>
+    <li><strong>Indexes</strong>:
+        <ul>
+            <li>Additional indexing on <strong>groupId</strong> and <strong>createdAt</strong> to support more efficient querying of group messages.</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h2>📋 Project Overview</h2>
+
+<h3>✅ Testing</h3>
+<p>All controller logic is tested using Jest.</p>
+<ul>
+    <li>Test cases are located in <code>src/tests/</code>.</li>
+</ul>
+<h4>Focus areas:</h4>
+<ul>
+    <li><strong>Input Validation</strong>: Ensure all input is validated before processing.</li>
+    <li><strong>Authentication Flows</strong>: Test registration, login, and token handling.</li>
+    <li><strong>Message and Group Logic</strong>: Ensure messaging and group functionality work as expected.</li>
+    <li><strong>Error Handling and Edge Cases</strong>: Ensure proper error responses for edge cases.</li>
+</ul>
+
+<hr>
+
+<h2>📦 Deployment</h2>
+<ul>
+    <li><strong>Dockerized</strong> using a <code>Dockerfile</code> and <code>docker-compose.yml</code>.</li>
+    <li><strong>Environment variables</strong> managed via <code>.env</code>.</li>
+    <li>Suitable for deployment on platforms like:
+        <ul>
+            <li>Railway</li>
+            <li>Render</li>
+            <li>AWS ECS</li>
+        </ul>
+    </li>
+</ul>
+
+<hr>
+
+<h2>📊 Swagger Documentation</h2>
+<ul>
+    <li><strong>Swagger</strong> is set up under <code>src/swagger/</code>.</li>
+    <li>API documentation is generated and served via an endpoint, typically <code>/docs</code>.</li>
+</ul>
+
+<hr>
+
+<h2>🚀 Potential Improvements</h2>
+<table>
+    <tr>
+        <th>Area</th>
+        <th>Suggestions</th>
+    </tr>
+    <tr>
+        <td>Performance</td>
+        <td>Add indexing on <code>messages.createdAt</code> for faster queries.</td>
+    </tr>
+    <tr>
+        <td>Scalability</td>
+        <td>Introduce Kafka/RabbitMQ for high-throughput message queues.</td>
+    </tr>
+    <tr>
+        <td>Monitoring</td>
+        <td>Integrate logging with Winston + Prometheus or Logtail for better observability.</td>
+    </tr>
+    <tr>
+        <td>Security</td>
+        <td>Add rate limiting and brute force protection (e.g., on login).</td>
+    </tr>
+    <tr>
+        <td>Features</td>
+        <td>Support media messages via S3 or CDN, add typing indicators for real-time feedback.</td>
+    </tr>
+    <tr>
+        <td>Testing</td>
+        <td>Add integration tests for full socket <-> REST workflows.</td>
+    </tr>
+</table>
+
+<hr>
+
+<h2>📌 Design Considerations</h2>
+<ul>
+    <li><strong>Modular Structure</strong>: Logical separation of concerns for maintainability.</li>
+    <li><strong>Horizontal Scalability</strong>: Redis pub/sub enables multiple instances of the server.</li>
+    <li><strong>Type Safety</strong>: TypeScript ensures contract enforcement across layers.</li>
+    <li><strong>Docker-Ready</strong>: Easy to spin up locally and deploy consistently.</li>
+</ul>
+
+</body>
