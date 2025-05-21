@@ -200,19 +200,6 @@ router.post("/register", validateRegistrationRules, validateResult, registerUser
  *                       location:
  *                         type: string
  *                         example: body
- *       401:
- *         description: Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: Invalid email or password
  *       500:
  *         description: Internal server error
  *         content:

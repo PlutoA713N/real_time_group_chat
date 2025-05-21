@@ -126,6 +126,22 @@ import {createGroupMessage} from "../controllers/user.group.message.controller";
  *                       location:
  *                         type: string
  *                         example: body
+ *       401:
+ *         description: Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Missing or invalid token"
+ *                 code:
+ *                   type: string
+ *                   example: INVALID_AUTH_TOKEN
  *       404:
  *         description: Group not found
  *         content:
@@ -142,22 +158,6 @@ import {createGroupMessage} from "../controllers/user.group.message.controller";
  *                 code:
  *                   type: string
  *                   example: GROUP_NOT_FOUND
- *       401:
- *         description: Unauthorized (e.g., missing or malformed token)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: Error in token verification: jwt malformed
- *                 code:
- *                   type: string
- *                   example: INTERNAL_SERVER_ERROR
  *       500:
  *         description: Internal server error
  *         content:
@@ -295,7 +295,7 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *                         type: string
  *                         example: query
  *       401:
- *         description: Unauthorized - missing or invalid token
+ *         description: Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -306,7 +306,7 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Missing token
+ *                   example: "Missing or invalid token"
  *                 code:
  *                   type: string
  *                   example: INVALID_AUTH_TOKEN
@@ -415,7 +415,7 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                   type: string
  *                   example: VALIDATION_FAILED
  *       401:
- *         description: Unauthorized (missing or invalid token)
+ *         description: Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -426,10 +426,26 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: "Error in token verification: jwt malformed"
+ *                   example: "Missing or invalid token"
  *                 code:
  *                   type: string
- *                   example: INTERNAL_SERVER_ERROR
+ *                   example: INVALID_AUTH_TOKEN
+ *       404:
+ *         description: Creator or member not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not found"
+ *                 code:
+ *                   type: string
+ *                   example: USER_NOT_FOUND
  *       500:
  *         description: Internal server error
  *         content:
@@ -547,6 +563,22 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                       location:
  *                         type: string
  *                         example: body
+ *       401:
+ *         description: Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Missing or invalid token"
+ *                 code:
+ *                   type: string
+ *                   example: INVALID_AUTH_TOKEN
  *       404:
  *         description: Group not found
  *         content:
@@ -563,22 +595,6 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                 code:
  *                   type: string
  *                   example: GROUP_NOT_FOUND
- *       401:
- *         description: Unauthorized (e.g., missing or malformed token)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Error in token verification: jwt malformed"
- *                 code:
- *                   type: string
- *                   example: INTERNAL_SERVER_ERROR
  *       500:
  *         description: Internal server error
  *         content:
