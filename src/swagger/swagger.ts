@@ -12,8 +12,8 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:5000',
-                description: 'Local server',
+                url: 'https://real-time-group-chat-sicx.onrender.com',
+                description: 'Real-Time Group Chat API',
             },
         ],
         components: {
