@@ -10,7 +10,7 @@ export const authenticationHandler = async (req: Request, res: Response, next: N
         const token = req.headers.authorization?.split(' ')[1]
 
         if (!token) {
-            return next(createError('Missing token', 400, 'INVALID_AUTH_TOKEN'))
+            return next(createError('Missing token', 401, 'INVALID_AUTH_TOKEN'))
         }
 
         const { userId } = verifyJwtToken(token) as IDecodedToken
