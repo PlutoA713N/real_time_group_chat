@@ -39,7 +39,7 @@ const verifyJwtToken = (token: string): IDecodedToken => {
 }
 
 
-const convertToSeconds = (expiryTime: string | number): number => {
+export const convertToSeconds = (expiryTime: string | number): number => {
     if (typeof expiryTime === "number") {
         return expiryTime;
     }
