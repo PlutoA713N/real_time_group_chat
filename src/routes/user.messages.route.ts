@@ -22,7 +22,7 @@ import {createGroupMessage} from "../controllers/user.group.message.controller";
  * @swagger
  * /api/messages:
  *   post:
- *     summary: Send a message to user or group
+ *     summary: Send a message to a user or a group
  *     tags: [Messages]
  *     security:
  *       - bearerAuth: []
@@ -43,18 +43,137 @@ import {createGroupMessage} from "../controllers/user.group.message.controller";
  *                 example: 68248f55f1b41aeceab2288e
  *               groupId:
  *                 type: string
+ *                 example: ""
  *               content:
  *                 type: string
  *                 example: Hello, world!
  *     responses:
- *       200:
+ *       201:
  *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: message sent successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                       example: true
+ *                     message:
+ *                       type: object
+ *                       properties:
+ *                         senderId:
+ *                           type: string
+ *                           example: 68271c25d32a93242a46fe78
+ *                         receiverId:
+ *                           type: string
+ *                           example: 68248f55f1b41aeceab2288e
+ *                         groupId:
+ *                           type: string
+ *                           example: ""
+ *                         content:
+ *                           type: string
+ *                           example: Hello, world!
+ *                         _id:
+ *                           type: string
+ *                           example: 682dbccc019bfd9ac2af1d18
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2025-05-21T11:45:16.783Z
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                           example: 2025-05-21T11:45:16.783Z
+ *                         __v:
+ *                           type: number
+ *                           example: 0
  *       400:
- *         description: Bad Request
- *       401:
- *         description: Unauthorized
+ *         description: Validation failed (e.g., receiverId or groupId missing)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Validation failed
+ *                 code:
+ *                   type: string
+ *                   example: VALIDATION_FAILED
+ *                 error:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: receiverId_or_groupId
+ *                       message:
+ *                         type: string
+ *                         example: Either receiverId or groupId should be provided
+ *                       location:
+ *                         type: string
+ *                         example: body
  *       404:
  *         description: Group not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: group does not exist
+ *                 code:
+ *                   type: string
+ *                   example: GROUP_NOT_FOUND
+ *       401:
+ *         description: Unauthorized (e.g., missing or malformed token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Error in token verification: jwt malformed
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: An unexpected error occurred
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
  */
 router.post("/messages", authenticationHandler, validateMessageRules, validateResult, checkMessageIdsFromBody, userMessageController)
 
@@ -175,10 +294,38 @@ router.post("/messages", authenticationHandler, validateMessageRules, validateRe
  *                       location:
  *                         type: string
  *                         example: query
- *       '401':
- *         description: Unauthorized
- *       '500':
+ *       401:
+ *         description: Unauthorized - missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Missing token
+ *                 code:
+ *                   type: string
+ *                   example: INVALID_AUTH_TOKEN
+ *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: An unexpected error occurred
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
  */
 router.get("/messages/history", authenticationHandler, validateMessageHistoryRules, validateResult, checkHistoryIdsFromQuery, getUserHistory )
 
@@ -246,16 +393,13 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                     createdAt:
  *                       type: string
  *                       format: date-time
- *                       example: "2025-05-20T15:51:22.294Z"
+ *                       example: "2025-05-21T12:30:45Z"
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
- *                       example: "2025-05-20T15:51:22.294Z"
- *                     __v:
- *                       type: integer
- *                       example: 0
+ *                       example: "2025-05-21T12:30:45Z"
  *       400:
- *         description: Validation error or duplicate group
+ *         description: Validation failed (e.g., missing required fields)
  *         content:
  *           application/json:
  *             schema:
@@ -269,26 +413,9 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                   example: "Validation failed"
  *                 code:
  *                   type: string
- *                   example: "VALIDATION_FAILED"
- *                 error:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                         example: "members"
- *                       message:
- *                         type: string
- *                         example: "Members must be an array"
- *                       value:
- *                         type: object
- *                         example: {}
- *                       location:
- *                         type: string
- *                         example: "body"
- *       409:
- *         description: Group already exists
+ *                   example: VALIDATION_FAILED
+ *       401:
+ *         description: Unauthorized (missing or invalid token)
  *         content:
  *           application/json:
  *             schema:
@@ -299,33 +426,38 @@ router.get("/messages/history", authenticationHandler, validateMessageHistoryRul
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: "Group already exists"
+ *                   example: "Error in token verification: jwt malformed"
  *                 code:
  *                   type: string
- *                   example: "GROUP_EXISTS"
- *       401:
- *         description: Unauthorized
+ *                   example: INTERNAL_SERVER_ERROR
  *       500:
- *         description: Server error
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "An unexpected error occurred"
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
  */
 router.post('/groups', authenticationHandler, validateGroupRequest, validateResult, validateGroupData, createGroup)
 
 /**
  * @swagger
- * /api/groups/{groupId}/messages:
+ * /api/groups/messages:
  *   post:
  *     summary: Send a message to a group
- *     description: This endpoint allows sending a message to a specific group.
  *     tags:
- *       - Group Messages
- *     parameters:
- *       - in: path
- *         name: groupId
- *         required: true
- *         description: The ID of the group to send the message to.
- *         schema:
- *           type: string
- *           example: 682c67e7dd5846d3ccf08d5e
+ *       - Groups
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -333,20 +465,21 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *           schema:
  *             type: object
  *             required:
- *               - senderId
+ *               - groupId
  *               - content
  *             properties:
  *               senderId:
  *                 type: string
- *                 description: The ID of the user sending the message.
- *                 example: 682c501d982e7da923e2104d
+ *                 example: "6824c3777fa6a0a2a410c0fd"
+ *               groupId:
+ *                 type: string
+ *                 example: "682c690bdd5846d3ccf08d61"
  *               content:
  *                 type: string
- *                 description: The content of the message being sent.
- *                 example: "Hello, everyone!, my 3rd message, this is kova again"
+ *                 example: "Hello everyone, welcome to the group!"
  *     responses:
- *       200:
- *         description: Message successfully sent to the group.
+ *       201:
+ *         description: Group message sent successfully
  *         content:
  *           application/json:
  *             schema:
@@ -357,42 +490,35 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: message sent successfully
+ *                   example: "Group message sent successfully"
  *                 data:
  *                   type: object
  *                   properties:
- *                     success:
- *                       type: boolean
- *                       example: true
- *                     groupName:
+ *                     senderId:
  *                       type: string
- *                       example: kova-group two
- *                     message:
- *                       type: object
- *                       properties:
- *                         senderId:
- *                           type: string
- *                           example: 682c501d982e7da923e2104d
- *                         groupId:
- *                           type: string
- *                           example: 682c67e7dd5846d3ccf08d5e
- *                         content:
- *                           type: string
- *                           example: "Hello, everyone!, my 3rd message, this is kova again"
- *                         _id:
- *                           type: string
- *                           example: 682ccc8d6234387739141274
- *                         createdAt:
- *                           type: string
- *                           example: "2025-05-20T18:40:13.796Z"
- *                         updatedAt:
- *                           type: string
- *                           example: "2025-05-20T18:40:13.796Z"
- *                         __v:
- *                           type: integer
- *                           example: 0
+ *                       example: "6824c3777fa6a0a2a410c0fd"
+ *                     groupId:
+ *                       type: string
+ *                       example: "682c690bdd5846d3ccf08d61"
+ *                     content:
+ *                       type: string
+ *                       example: "Hello everyone, welcome to the group!"
+ *                     _id:
+ *                       type: string
+ *                       example: "682dbccc019bfd9ac2af1d18"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-05-21T11:45:16.783Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-05-21T11:45:16.783Z"
+ *                     __v:
+ *                       type: number
+ *                       example: 0
  *       400:
- *         description: Validation failed (e.g., invalid senderId).
+ *         description: Validation failed (e.g., missing groupId or content)
  *         content:
  *           application/json:
  *             schema:
@@ -403,7 +529,7 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Validation failed
+ *                   example: "Validation failed"
  *                 code:
  *                   type: string
  *                   example: VALIDATION_FAILED
@@ -414,18 +540,15 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                     properties:
  *                       field:
  *                         type: string
- *                         example: senderId
+ *                         example: groupId
  *                       message:
  *                         type: string
- *                         example: Invalid senderId
- *                       value:
- *                         type: string
- *                         example: "682c501d982e7da923e104d"
+ *                         example: "GroupId is required"
  *                       location:
  *                         type: string
  *                         example: body
- *       401:
- *         description: Missing or invalid token.
+ *       404:
+ *         description: Group not found
  *         content:
  *           application/json:
  *             schema:
@@ -436,16 +559,42 @@ router.post('/groups', authenticationHandler, validateGroupRequest, validateResu
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: Missing token
+ *                   example: "Group not found"
  *                 code:
  *                   type: string
- *                   example: INVALID_AUTH_TOKEN
- *       404:
- *         description: Group not found or invalid group ID.
+ *                   example: GROUP_NOT_FOUND
+ *       401:
+ *         description: Unauthorized (e.g., missing or malformed token)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Error in token verification: jwt malformed"
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
  *       500:
- *         description: Server error while processing the request.
- *     security:
- *       - bearerAuth: []
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "An unexpected error occurred"
+ *                 code:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
  */
 router.post('/groups/:groupId/messages', authenticationHandler, validateGroupMessageRules, validateResult, validateGroupMessagesRequest,  createGroupMessage)
 
