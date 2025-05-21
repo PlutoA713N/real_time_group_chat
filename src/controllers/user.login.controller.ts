@@ -5,6 +5,7 @@ import { comparePassword } from "./../utils/auth";
 import { error } from "console";
 import { jwtSign } from "../utils/jwt";
 import { createSuccessResponse } from "../errors/createSuccessResponse";
+import {storeUserToken} from "../redis/redisUtils";
 
 export async function handleUserLogin(req: Request, res: Response, next: NextFunction) {
     try {
@@ -41,6 +42,7 @@ export async function handleUserLogin(req: Request, res: Response, next: NextFun
          }
         
         const token = jwtSign(payload, '30d')
+        await storeUserToken(user._id.toString(), token, '30d')
 
          res.status(200).json(createSuccessResponse('User logged in successfully', {
             token: token,

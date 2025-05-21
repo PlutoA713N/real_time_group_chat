@@ -6,6 +6,7 @@ import { log } from "console";
 import { jwtSign } from "../utils/jwt";
 import { createError } from "../errors/createError";
 import { createSuccessResponse } from "../errors/createSuccessResponse";
+import {storeUserToken} from "../redis/redisUtils";
 
 const registerUser = async (
   req: Request,
@@ -47,6 +48,8 @@ const registerUser = async (
     };
 
     const jwtToken =  jwtSign(payload);
+    await  storeUserToken(userData._id.toString(), jwtToken, )
+
     res.status(201).json(createSuccessResponse("User registered successfully", {
       token: jwtToken,
       userId: userData._id.toString(),
