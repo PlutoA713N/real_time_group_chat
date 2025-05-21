@@ -38,7 +38,7 @@ export async function validateGroupData(req: IAuthenticatedRequest, res: Respons
         await Promise.all(uniqueMembers.map(async(userId) => {
             const user = await checkFieldExists(UserRegistrationModel, '_id', userId);
             if (!user.isExists) {
-                throw createError(`User with ID "${userId}" does not exist`, 400, 'USER_NOT_FOUND');
+                throw createError(`User with ID "${userId}" does not exist`, 404, 'USER_NOT_FOUND');
             }
 
         }))
