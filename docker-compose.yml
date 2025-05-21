@@ -9,20 +9,6 @@ services:
     env_file:
       - .env
     environment:
-      - MONGODB_URI=mongodb://mongo:27017/mydb  # 🌐 Tell Node.js to connect to MongoDB service
-      - JWT_SECRET=your_jwt_secret                    # 🔒 Your app’s environment variable
-    depends_on:
-      - mongo                   # 🔄 Wait for MongoDB to start before booting Node app
-
-  # 🍃 MongoDB Container
-  mongo:
-    image: mongo                # 🏗️ Use official MongoDB image from DockerHub
-    restart: always             # 🔁 Auto-restart MongoDB if it crashes
-    ports:
-      - '27017:27017'           # (optional) expose Mongo port to host system
-    volumes:
-      - mongo_data:/data/db     # 💾 Persist MongoDB data across container restarts
-
-# 🔖 Named volume to store MongoDB data
-volumes:
-  mongo_data:
+      - MONGO_URI=${MONGO_URI}  # 🌐 Tell Node.js to connect to MongoDB service
+      - JWT_SECRET_KEY=${}
+      - REDIS_CLIENT_URL=${REDIS_CLIENT_URL}                 # 🔒 Your app’s environment variable
